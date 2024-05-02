@@ -59,9 +59,9 @@ extern yy::location loc;
 %token T_LS_BRACKET
 %token T_RS_BRACKET
 
-%token <string>		T_ID ;
-%token <int>		T_INTEGER ;
-%token <float>		T_FLOAT;
+%token <string>   T_ID ;
+%token <int>    T_INTEGER ;
+%token <float>    T_FLOAT;
 
 %type <symbol_t*> assignment;
 %type <symbol_t*> varref;
@@ -178,23 +178,23 @@ construct_if :
       // DEFINE_ME = change to proper values.
       // TBDARG = Should modify the corresponding address (.addr#) in a later semantic action.
       // NOARG = No need to change.
-      itab_instruction_add (itab, DEFINE_ME, DEFINE_ME, NOARG, TBDARG);
-      @$.begin.line = INSTRUCTION_NEXT; // INSTRUCTION_NEXT or INSTRUCTION_LAST
+      itab_instruction_add (itab, OP_JZ, $3->addr, NOARG, TBDARG); // CHANGED HERE
+      @$.begin.line = INSTRUCTION_LAST; // INSTRUCTION_NEXT or INSTRUCTION_LAST (CHANGED HERE)
     }
     stmt 
     {
       // Second semantic action
       itab_instruction_add (itab, OP_JMP, NOARG, NOARG, TBDARG);
-      @$.begin.line =  INSTRUCTION_NEXT; // INSTRUCTION_NEXT or INSTRUCTION_LAST
+      @$.begin.line =  INSTRUCTION_LAST; // INSTRUCTION_NEXT or INSTRUCTION_LAST (CHANGED HERE)
 
       int jmp_entry = @5.begin.line;
-      itab->tab[jmp_entry]->addr3 = INSTRUCTION_LAST; // INSTRUCTION_NEXT or INSTRUCTION_LAST
+      itab->tab[jmp_entry]->addr3 = INSTRUCTION_NEXT; // INSTRUCTION_NEXT or INSTRUCTION_LAST (CHANGED HERE)
     }
     construct_else
     {
       // Third semantic action
       int jmp_entry = @7.begin.line;
-      itab->tab[jmp_entry]->addr3 = INSTRUCTION_LAST; // INSTRUCTION_NEXT or INSTRUCTION_LAST
+      itab->tab[jmp_entry]->addr3 = INSTRUCTION_NEXT; // INSTRUCTION_NEXT or INSTRUCTION_LAST (CHANGED HERE)
     }
     ;
 
@@ -239,9 +239,9 @@ assignment : T_ID arr_index T_ASSIGN a_expr
         temp = make_temp (symtab, sym->datatype);
         // TASK: Complete the four TBD_ARG in both calls to itab_instruction_add.
         if (sym->datatype == DTYPE_INT)
-          itab_instruction_add (itab, OP_CAST_FLOAT2INT, sym->addr, UNUSED_ARG, src_temp->addr);
+          itab_instruction_add (itab, OP_CAST_FLOAT2INT, temp->addr, UNUSED_ARG, src_temp->addr);
         else
-          itab_instruction_add (itab, OP_CAST_INT2FLOAT, sym->addr, UNUSED_ARG, temp->addr);
+          itab_instruction_add (itab, OP_CAST_INT2FLOAT, temp->addr, UNUSED_ARG, src_temp->addr);
 
         // Final store to the array will use the intermediate variable resulting from the cast.
         src_temp = temp;
@@ -533,6 +533,6 @@ expr_list : expr_list  T_COMMA a_expr
 %%
 
 void yy::simple_parser::error (const yy::location & l, const std::string & s) {
-	std::cerr << "Simple Parser error at " << l << " : " << s << std::endl;
+  std::cerr << "Simple Parser error at " << l << " : " << s << std::endl;
 }
 
